@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chat IA Grátis</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f0ede8;--surface:#faf8f5;--surface2:#e8e4dc;--border:#d4cfc6;
+  --ink:#1a1714;--ink2:#6b6560;--ink3:#9e9890;
+  --accent:#2d5a27;--accent2:#5a8f52;--accent-light:#e8f0e6;
+  --user-bg:#1a1714;--user-text:#f0ede8;--ai-bg:#ffffff;
+  --shadow:0 2px 16px rgba(0,0,0,0.08);--r:18px;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--ink);height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:200px;z-index:999}
+header{display:flex;align-items:center;gap:14px;padding:14px 24px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;position:relative;z-index:10}
+.logo-mark{width:38px;height:38px;background:var(--accent);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-mark svg{width:20px;height:20px}
+.header-text h1{font-size:15px;font-weight:700;color:var(--ink);letter-spacing:-0.3px}
+.header-text p{font-size:11px;color:var(--ink3)}
+.header-badge{margin-left:auto;display:flex;align-items:center;gap:6px;background:var(--accent-light);border:1px solid #c2d9be;border-radius:20px;padding:4px 12px;font-size:11px;color:var(--accent);font-weight:600}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--accent2);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.model-pill{display:flex;align-items:center;gap:6px;margin-left:10px}
+.model-pill label{font-size:11px;color:var(--ink3);font-weight:500}
+.model-pill select{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;color:var(--ink);outline:none;cursor:pointer}
+#clear-btn{background:none;border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;color:var(--ink3);cursor:pointer;transition:all .18s;margin-left:8px}
+#clear-btn:hover{color:var(--ink);border-color:var(--ink2)}
+#chat{flex:1;overflow-y:auto;padding:28px 20px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth}
+#chat::-webkit-scrollbar{width:5px}
+#chat::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+#empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:16px;padding:40px 24px;animation:fadeIn .5s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.empty-icon{width:70px;height:70px;background:var(--accent);border-radius:22px;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 32px rgba(45,90,39,.25)}
+.empty-icon svg{width:34px;height:34px}
+#empty-state h2{font-size:26px;font-weight:800;letter-spacing:-0.6px}
+#empty-state p{font-size:14px;color:var(--ink2);max-width:340px;line-height:1.6}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:480px;margin-top:4px}
+.chip{background:var(--ai-bg);border:1px solid var(--border);border-radius:20px;padding:8px 16px;font-size:12px;font-weight:500;color:var(--ink2);cursor:pointer;transition:all .18s;white-space:nowrap}
+.chip:hover{background:var(--accent-light);border-color:var(--accent2);color:var(--accent);transform:translateY(-1px)}
+.msg-wrap{display:flex;gap:10px;animation:msgIn .28s cubic-bezier(.22,1,.36,1);max-width:780px;width:100%;align-self:center}
+@keyframes msgIn{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+.msg-wrap.user{flex-direction:row-reverse;align-self:flex-end}
+.av{width:34px;height:34px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.msg-wrap.user .av{background:var(--user-bg);color:var(--user-text)}
+.msg-wrap.ai .av{background:var(--accent);color:white}
+.msg-wrap.ai .av svg{width:18px;height:18px}
+.bubble{padding:13px 17px;border-radius:var(--r);font-size:14px;line-height:1.7;max-width:calc(100% - 46px);box-shadow:var(--shadow)}
+.msg-wrap.user .bubble{background:var(--user-bg);color:var(--user-text);border-top-right-radius:5px}
+.msg-wrap.ai .bubble{background:var(--ai-bg);color:var(--ink);border-top-left-radius:5px;border:1px solid var(--border)}
+.bubble p{margin-bottom:8px}.bubble p:last-child{margin-bottom:0}
+.bubble strong{font-weight:700}.bubble em{font-style:italic}
+.bubble h1,.bubble h2,.bubble h3{font-weight:700;margin:14px 0 6px;letter-spacing:-0.3px}
+.bubble h1{font-size:18px}.bubble h2{font-size:16px}.bubble h3{font-size:14px}
+.bubble ul,.bubble ol{padding-left:20px;margin:8px 0}.bubble li{margin-bottom:5px}
+.bubble code{font-family:'JetBrains Mono',monospace;font-size:12px;background:#f0ede8;border:1px solid var(--border);padding:2px 6px;border-radius:5px;color:var(--accent)}
+.bubble pre{background:#1a1714;border-radius:10px;padding:14px;overflow-x:auto;margin:10px 0}
+.bubble pre code{background:none;border:none;padding:0;color:#a8d4a3;font-size:12px}
+.bubble blockquote{border-left:3px solid var(--accent2);padding-left:12px;color:var(--ink2);margin:8px 0;font-style:italic}
+.bubble a{color:var(--accent);text-decoration:underline}
+.bubble hr{border:none;border-top:1px solid var(--border);margin:12px 0}
+.bubble.err{background:#fef2f2;border-color:#fecaca;color:#b91c1c;font-size:13px}
+.typing{display:flex;gap:5px;align-items:center;padding:16px 20px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--ink3);animation:dots 1.1s infinite}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+@keyframes dots{0%,100%{transform:translateY(0);opacity:.4}50%{transform:translateY(-5px);opacity:1}}
+.input-wrap{padding:14px 20px 18px;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0;position:relative;z-index:10}
+.input-box{display:flex;align-items:flex-end;gap:10px;background:var(--ai-bg);border:1.5px solid var(--border);border-radius:16px;padding:10px 10px 10px 18px;max-width:780px;margin:0 auto;box-shadow:var(--shadow);transition:border-color .2s}
+.input-box:focus-within{border-color:var(--accent2)}
+textarea{flex:1;background:none;border:none;outline:none;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--ink);resize:none;max-height:130px;line-height:1.6;padding:2px 0}
+textarea::placeholder{color:var(--ink3)}
+#send-btn{width:38px;height:38px;flex-shrink:0;background:var(--accent);border:none;border-radius:11px;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s}
+#send-btn:hover:not(:disabled){background:var(--accent2);transform:scale(1.06)}
+#send-btn:active:not(:disabled){transform:scale(.96)}
+#send-btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+#send-btn svg{width:16px;height:16px}
+.hint{text-align:center;font-size:10px;color:var(--ink3);margin-top:8px}
+@media(max-width:600px){header{padding:10px 14px;flex-wrap:wrap;gap:8px}.model-pill{margin-left:0}#chat{padding:16px 12px}.input-wrap{padding:10px 12px 14px}#empty-state h2{font-size:20px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo-mark">
+    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 2a7 7 0 0 1 7 7c0 4-3 6-4 8H9c-1-2-4-4-4-8a7 7 0 0 1 7-7z"/>
+      <line x1="9" y1="21" x2="15" y2="21"/><line x1="10" y1="24" x2="14" y2="24"/>
+    </svg>
+  </div>
+  <div class="header-text">
+    <h1>Chat IA</h1>
+    <p>Sem cadastro · 100% gratuito</p>
+  </div>
+  <div class="header-badge"><div class="live-dot"></div>Online</div>
+  <div class="model-pill">
+    <label>Modelo</label>
+    <select id="model-select">
+      <option value="openai-large">GPT-4o (potente)</option>
+      <option value="openai" selected>GPT-4o-mini (rápido)</option>
+      <option value="mistral">Mistral</option>
+      <option value="llama">Llama 3.3</option>
+      <option value="deepseek">DeepSeek</option>
+    </select>
+  </div>
+  <button id="clear-btn" onclick="clearChat()">🗑 Limpar</button>
+</header>
+
+<div id="chat">
+  <div id="empty-state">
+    <div class="empty-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2a7 7 0 0 1 7 7c0 4-3 6-4 8H9c-1-2-4-4-4-8a7 7 0 0 1 7-7z"/>
+        <line x1="9" y1="21" x2="15" y2="21"/>
+      </svg>
+    </div>
+    <h2>Como posso ajudar?</h2>
+    <p>Pergunte qualquer coisa. Sem cadastro, sem limite, totalmente grátis.</p>
+    <div class="chips">
+      <div class="chip" onclick="useChip(this)">✍️ Escreva um texto criativo</div>
+      <div class="chip" onclick="useChip(this)">💡 Me dê ideias de negócio</div>
+      <div class="chip" onclick="useChip(this)">🐍 Explique Python para iniciantes</div>
+      <div class="chip" onclick="useChip(this)">🌍 Resuma o que é mudança climática</div>
+      <div class="chip" onclick="useChip(this)">🍕 Receita rápida com frango</div>
+      <div class="chip" onclick="useChip(this)">📚 Indique livros de ficção científica</div>
+    </div>
+  </div>
+</div>
+
+<div class="input-wrap">
+  <div class="input-box">
+    <textarea id="msg" placeholder="Escreva sua mensagem..." rows="1"
+      onkeydown="onKey(event)" oninput="resize(this)"></textarea>
+    <button id="send-btn" onclick="send()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+      </svg>
+    </button>
+  </div>
+  <p class="hint">Enter para enviar · Shift+Enter para nova linha · Powered by <a href="https://pollinations.ai" target="_blank" style="color:var(--accent2)">Pollinations.ai</a></p>
+</div>
+
+<script>
+let history=[], busy=false;
+
+function resize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,130)+'px'}
+function onKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}}
+function useChip(el){document.getElementById('msg').value=el.textContent.replace(/^..\s/,'');send()}
+
+function clearChat(){
+  history=[];
+  const c=document.getElementById('chat');
+  c.innerHTML='';
+  const d=document.createElement('div');
+  d.id='empty-state';
+  d.innerHTML=`<div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 4-3 6-4 8H9c-1-2-4-4-4-8a7 7 0 0 1 7-7z"/><line x1="9" y1="21" x2="15" y2="21"/></svg></div><h2>Como posso ajudar?</h2><p>Pergunte qualquer coisa. Sem cadastro, sem limite, totalmente grátis.</p><div class="chips"><div class="chip" onclick="useChip(this)">✍️ Escreva um texto criativo</div><div class="chip" onclick="useChip(this)">💡 Me dê ideias de negócio</div><div class="chip" onclick="useChip(this)">🐍 Explique Python para iniciantes</div><div class="chip" onclick="useChip(this)">🍕 Receita rápida com frango</div></div>`;
+  c.appendChild(d);
+}
+
+function md(t){
+  t=t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  t=t.replace(/```(\w*)\n?([\s\S]*?)```/g,(_,l,c)=>`<pre><code>${c.trim()}</code></pre>`);
+  t=t.replace(/`([^`\n]+)`/g,'<code>$1</code>');
+  t=t.replace(/\*\*\*(.+?)\*\*\*/g,'<strong><em>$1</em></strong>');
+  t=t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+  t=t.replace(/\*(.+?)\*/g,'<em>$1</em>');
+  t=t.replace(/^&gt;\s*(.+)$/gm,'<blockquote>$1</blockquote>');
+  t=t.replace(/^### (.+)$/gm,'<h3>$1</h3>');
+  t=t.replace(/^## (.+)$/gm,'<h2>$1</h2>');
+  t=t.replace(/^# (.+)$/gm,'<h1>$1</h1>');
+  t=t.replace(/^---$/gm,'<hr>');
+  t=t.replace(/^[\-\*] (.+)$/gm,'<li>$1</li>');
+  t=t.replace(/^\d+\. (.+)$/gm,'<li>$1</li>');
+  t=t.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank">$1</a>');
+  return t.split(/\n{2,}/).map(b=>/^<(h[1-3]|ul|ol|pre|blockquote|hr|li)/.test(b.trim())?b:`<p>${b.replace(/\n/g,'<br>')}</p>`).join('');
+}
+
+const AI_SVG=`<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 4-3 6-4 8H9c-1-2-4-4-4-8a7 7 0 0 1 7-7z"/><line x1="9" y1="21" x2="15" y2="21"/></svg>`;
+
+function removeEmpty(){const e=document.getElementById('empty-state');if(e)e.remove()}
+
+function addBubble(role,content,isErr=false){
+  removeEmpty();
+  const chat=document.getElementById('chat');
+  const wrap=document.createElement('div');wrap.className=`msg-wrap ${role}`;
+  const av=document.createElement('div');av.className='av';
+  av.innerHTML=role==='user'?'EU':AI_SVG;
+  const bubble=document.createElement('div');bubble.className='bubble'+(isErr?' err':'');
+  if(role==='user')bubble.textContent=content;else bubble.innerHTML=content;
+  wrap.appendChild(av);wrap.appendChild(bubble);
+  chat.appendChild(wrap);chat.scrollTop=chat.scrollHeight;
+}
+
+function addTyping(){
+  removeEmpty();
+  const chat=document.getElementById('chat');
+  const wrap=document.createElement('div');wrap.className='msg-wrap ai';wrap.id='typing-wrap';
+  const av=document.createElement('div');av.className='av';av.innerHTML=AI_SVG;
+  const bubble=document.createElement('div');bubble.className='bubble';
+  bubble.innerHTML='<div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+  wrap.appendChild(av);wrap.appendChild(bubble);
+  chat.appendChild(wrap);chat.scrollTop=chat.scrollHeight;
+}
+function removeTyping(){const t=document.getElementById('typing-wrap');if(t)t.remove()}
+
+async function send(){
+  if(busy)return;
+  const ta=document.getElementById('msg');
+  const text=ta.value.trim();
+  if(!text)return;
+  addBubble('user',text);
+  history.push({role:'user',content:text});
+  ta.value='';ta.style.height='auto';
+  addTyping();busy=true;
+  document.getElementById('send-btn').disabled=true;
+  const model=document.getElementById('model-select').value;
+  try{
+    const res=await fetch('https://text.pollinations.ai/openai',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model,
+        messages:[
+          {role:'system',content:'Você é um assistente de IA prestativo, inteligente e amigável. Responda sempre em português brasileiro. Use markdown quando fizer sentido para organizar a resposta.'},
+          ...history
+        ]
+      })
+    });
+    removeTyping();
+    if(!res.ok)throw new Error(`Erro ${res.status}`);
+    const data=await res.json();
+    const reply=data?.choices?.[0]?.message?.content;
+    if(!reply)throw new Error('Resposta vazia.');
+    history.push({role:'assistant',content:reply});
+    addBubble('ai',md(reply));
+  }catch(err){
+    removeTyping();
+    addBubble('ai',`⚠️ ${err.message||'Falha na conexão. Tente novamente.'}`,true);
+    history.pop();
+  }finally{
+    busy=false;document.getElementById('send-btn').disabled=false;ta.focus();
+  }
+}
+document.getElementById('msg').focus();
+</script>
+</body>
+</html>
